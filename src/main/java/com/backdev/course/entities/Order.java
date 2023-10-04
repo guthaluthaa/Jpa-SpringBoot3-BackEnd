@@ -7,7 +7,12 @@ import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+
+// Arrumar curriculo, finalizar esse projeto (ver se dbeaver ou google), ver video dele
+// para fazer o README
 
 @Entity
 @Table(name = "tb_order")
@@ -19,10 +24,15 @@ public class Order implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",timezone = "GMT")
     private Instant moment;
     private Integer orderStatus;
+    @OneToOne(mappedBy = "order",cascade = CascadeType.ALL) //um para um
 
+    private Payment payment;
     @ManyToOne
     @JoinColumn(name = "client_id")
     private User client;
+
+    @OneToMany(mappedBy = "id.order") //id do orderItem e nele contem  o order
+    private Set<OrderItem> items = new HashSet<>();
 
     public Order() {
     }
@@ -34,6 +44,14 @@ public class Order implements Serializable {
         this.client = client;
     }
 
+    public Double getTotal(){
+        double total = 0.0;
+        for(OrderItem x : items){
+            total += x.getSubTotal();
+        }
+        return total;
+    }
+
     public OrderStatus getOrderStatus() {
         return OrderStatus.valueOf(orderStatus);
     }
@@ -42,6 +60,14 @@ public class Order implements Serializable {
         if(orderStatus != null){
             this.orderStatus = orderStatus.getCode();
         }
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 
     public Long getId() {
@@ -67,7 +93,9 @@ public class Order implements Serializable {
     public void setClient(User client) {
         this.client = client;
     }
-
+    public Set<OrderItem> getItems(){
+        return items;
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
